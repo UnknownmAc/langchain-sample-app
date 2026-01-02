@@ -1,6 +1,7 @@
 import { ChatGroq } from "@langchain/groq";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MemorySaver } from "@langchain/langgraph";
+import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { 
   getWeather, 
   calculate, 
@@ -47,11 +48,11 @@ export const agent = createReactAgent({
 /**
  * Invoke the agent with memory support
  * 
- * @param messages - Array of messages to send
+ * @param messages - Array of LangChain messages
  * @param threadId - Unique identifier for the conversation thread
  */
 export async function invokeAgent(
-  messages: { role: string; content: string }[],
+  messages: BaseMessage[],
   threadId: string
 ) {
   const response = await agent.invoke(
@@ -61,3 +62,8 @@ export async function invokeAgent(
   
   return response;
 }
+
+/**
+ * Helper to create a human message
+ */
+export { HumanMessage };

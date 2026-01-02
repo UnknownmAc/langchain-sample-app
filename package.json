@@ -1,0 +1,22 @@
+{
+  "name": "langchain-sample-app",
+  "version": "1.0.0",
+  "description": "A sample LangChain JS agent application",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev:ui": "cd ui && npm run dev",
+    "build:ui": "cd ui && npm run build",
+    "start:ui": "cd ui && npm run start"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.3.0",
+    "@langchain/groq": "^0.1.0",
+    "@langchain/langgraph": "^0.2.0",
+    "dotenv": "^16.4.0",
+    "zod": "^3.23.0"
+  },
+  "keywords": ["langchain", "ai", "agent", "llm"],
+  "license": "MIT"
+}

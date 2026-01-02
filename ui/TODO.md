@@ -1,244 +1,178 @@
-# TODO: Production Improvements
+# TODO: Integrate HuggingFace Custom API as Model Provider
 
-This document outlines recommended improvements to make the LangChain Agent app production-ready.
+## Overview
 
----
-
-## 🔴 Critical (Required for Production)
-
-### 1. Persistent Vector Store
-
-**Current Issue:** Using in-memory `MemoryVectorStore` which loses all data on server restart or cold start.
-
-**Recommended Solution:** Migrate to Pinecone (free tier available)
-
-```bash
-npm install @langchain/pinecone @pinecone-database/pinecone
+Replace Groq with your custom HuggingFace API endpoint:
 ```
-
-**Implementation:**
-- Sign up at [pinecone.io](https://www.pinecone.io/)
-- Create an index with dimension `384` (matching our embeddings)
-- Update `lib/vectorStore/store.ts` to use Pinecone instead of MemoryVectorStore
-
-**Environment Variables:**
-```
-PINECONE_API_KEY=your-pinecone-api-key
-PINECONE_INDEX=study-materials
+https://hugging-niskumar-api.vercel.app/api/generate
 ```
 
 ---
 
-### 2. Database for Document Metadata
+## Current Setup
 
-**Current Issue:** Document metadata stored in JavaScript `Map` object, lost on restart.
-
-**Recommended Solution:** Use Supabase PostgreSQL (free tier available)
-
-```bash
-npm install @supabase/supabase-js
-```
-
-**Database Schema:**
-```sql
-CREATE TABLE documents (
-  id TEXT PRIMARY KEY,
-  filename TEXT NOT NULL,
-  page_count INTEGER,
-  chunk_count INTEGER,
-  uploaded_at TIMESTAMP DEFAULT NOW(),
-  user_id TEXT -- for multi-user support
-);
-```
-
-**Environment Variables:**
-```
-SUPABASE_URL=your-supabase-url
-SUPABASE_ANON_KEY=your-supabase-anon-key
-```
+- **Model Provider**: Groq (`llama-3.3-70b-versatile`)
+- **Agent**: LangGraph ReAct Agent with tools
+- **File**: `lib/agent.ts`
 
 ---
 
-### 3. File Storage for PDFs
+## Option 1: Simple Chat Mode (No Tools)
 
-**Current Issue:** PDFs are processed in memory and not stored permanently.
+Your HuggingFace API doesn't support tool/function calling. Create a simple chat integration:
 
-**Recommended Solution:** Cloudflare R2 or AWS S3
+### Step 1: Create Simple Chat Client
 
-```bash
-npm install @aws-sdk/client-s3
-```
+Create `lib/chat/simpleChat.ts`:
 
-**Benefits:**
-- Users can re-download their uploaded PDFs
-- Ability to re-process documents if needed
-- Audit trail of uploads
-
----
-
-## 🟡 Important (Recommended)
-
-### 4. Better Embeddings
-
-**Current Issue:** Using simple TF-IDF embeddings which lack semantic understanding.
-
-**Recommended Solution:** OpenAI or Cohere embeddings
-
-```bash
-npm install @langchain/openai
-# or
-npm install @langchain/cohere
-```
-
-**Trade-offs:**
-- Better semantic search quality
-- Requires API key and has usage costs
-- OpenAI: ~$0.0001 per 1K tokens
-
----
-
-### 5. Authentication
-
-**Current Issue:** No user authentication, anyone can access the app.
-
-**Recommended Solutions:**
-- **NextAuth.js** - Easy integration with Next.js
-- **Clerk** - Drop-in auth components
-- **Supabase Auth** - If already using Supabase
-
-```bash
-npm install next-auth
-# or
-npm install @clerk/nextjs
-```
-
----
-
-### 6. Rate Limiting
-
-**Current Issue:** No protection against API abuse.
-
-**Recommended Solution:** Use Upstash Redis for rate limiting
-
-```bash
-npm install @upstash/ratelimit @upstash/redis
-```
-
-**Implementation:**
 ```typescript
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+const API_URL = "https://hugging-niskumar-api.vercel.app/api/generate";
 
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "1 m"), // 10 requests per minute
-});
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+function formatPrompt(messages: Message[]): string {
+  return messages
+    .map(m => m.role === "user" ? `Human: ${m.content}` : `Assistant: ${m.content}`)
+    .join("\n\n") + "\n\nAssistant:";
+}
+
+export async function simpleChat(messages: Message[]): Promise<string> {
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: formatPrompt(messages) }),
+  });
+  
+  const data = await response.json();
+  return data.response || data.text || data.generated_text;
+}
 ```
+
+### Step 2: Create API Route
+
+Create `app/api/simple-chat/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+import { simpleChat } from "@/lib/chat/simpleChat";
+
+export async function POST(request: NextRequest) {
+  const { message, history = [] } = await request.json();
+  
+  const messages = [
+    ...history,
+    { role: "user", content: message }
+  ];
+  
+  const response = await simpleChat(messages);
+  return NextResponse.json({ response });
+}
+```
+
+### Step 3: Update Frontend
+
+Modify `app/page.tsx` to call `/api/simple-chat` instead of `/api/chat`.
 
 ---
 
-### 7. Error Monitoring
+## Option 2: Keep Agent Mode + Add HuggingFace for Simple Queries
 
-**Current Issue:** Errors only logged to console, no visibility in production.
+Keep Groq for tool-based queries, add HuggingFace for simple chat:
 
-**Recommended Solution:** Sentry
+1. Add mode toggle in UI (Agent vs Simple Chat)
+2. Route to different endpoints based on mode
+3. Tools only work in Agent mode (Groq)
+
+---
+
+## Option 3: Manual Tool Calling (Advanced)
+
+Implement custom tool calling by parsing LLM responses:
+
+### How it works:
+
+1. Send system prompt teaching LLM to output tool calls in JSON format
+2. Parse response for tool call patterns
+3. Execute tools manually
+4. Send results back to LLM
+
+### Example System Prompt:
+
+```
+When you need to use a tool, respond with:
+<tool>{"name": "tool_name", "args": {...}}</tool>
+
+Available tools:
+- get_weather: {"city": "string"}
+- calculate: {"expression": "string"}
+```
+
+### Drawbacks:
+- Less reliable than native function calling
+- Requires custom parsing logic
+- May produce malformed JSON
+
+---
+
+## Environment Variables
+
+Add to `.env.local`:
 
 ```bash
-npm install @sentry/nextjs
+# HuggingFace Custom API
+HUGGINGFACE_API_URL=https://hugging-niskumar-api.vercel.app/api/generate
+
+# Keep Groq for agent mode (optional)
+GROQ_API_KEY=your-groq-key
 ```
 
 ---
 
-## 🟢 Nice to Have (Future Enhancements)
+## API Response Format
 
-### 8. Streaming Responses
+Ensure your HuggingFace API returns one of these formats:
 
-**Current Issue:** User waits for full response before seeing anything.
+```json
+{ "response": "AI response text" }
+// or
+{ "text": "AI response text" }
+// or
+{ "generated_text": "AI response text" }
+```
 
-**Enhancement:** Stream LLM responses token by token for better UX.
+---
 
-**Implementation:** Use Vercel AI SDK with streaming
+## Testing
 
 ```bash
-npm install ai
+# Test your API directly
+curl -X POST https://hugging-niskumar-api.vercel.app/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Hello, how are you?"}'
 ```
 
 ---
 
-### 9. Multiple File Upload
+## Recommended Approach
 
-**Current Issue:** Can only upload one PDF at a time.
+**Option 1 (Simple Chat)** is recommended because:
+- ✅ Works immediately with your API
+- ✅ No tool calling issues
+- ✅ Simple implementation
+- ❌ No tools (weather, calculator, RAG)
 
-**Enhancement:** Support batch upload with progress indicators.
-
----
-
-### 10. Document Preview
-
-**Enhancement:** Show PDF preview in the UI with page navigation.
-
-```bash
-npm install react-pdf
-```
+If you need tools, keep Groq as the agent and add HuggingFace as an alternative simple chat mode.
 
 ---
 
-### 11. Conversation History Persistence
+## Files to Create/Modify
 
-**Current Issue:** Conversation history lost on page refresh.
-
-**Enhancement:** Store conversations in database for retrieval.
-
----
-
-### 12. Multi-User Support
-
-**Current Issue:** All users share the same vector store.
-
-**Enhancement:** Namespace documents by user ID in vector store.
-
----
-
-### 13. Document Chunking Improvements
-
-**Current Issue:** Fixed chunk size may split content awkwardly.
-
-**Enhancement:** Use semantic chunking based on document structure (headings, paragraphs).
-
----
-
-### 14. Citation Links
-
-**Enhancement:** Add clickable links to specific pages/sections when citing sources.
-
----
-
-### 15. Export Conversations
-
-**Enhancement:** Allow users to export chat history as PDF or Markdown.
-
----
-
-## 📋 Implementation Priority
-
-| Priority | Task | Effort | Impact |
-|----------|------|--------|--------|
-| 1 | Pinecone Vector Store | Medium | Critical |
-| 2 | Supabase for Metadata | Medium | Critical |
-| 3 | Authentication | Medium | Important |
-| 4 | Better Embeddings | Low | Important |
-| 5 | Rate Limiting | Low | Important |
-| 6 | Streaming Responses | Medium | Nice UX |
-| 7 | Error Monitoring | Low | Important |
-| 8 | File Storage | Medium | Nice to Have |
-
----
-
-## 🔗 Useful Resources
-
-- [Pinecone + LangChain Guide](https://js.langchain.com/docs/integrations/vectorstores/pinecone)
-- [Supabase + Next.js](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
-- [NextAuth.js Documentation](https://next-auth.js.org/)
-- [Vercel AI SDK](https://sdk.vercel.ai/docs)
-- [Sentry for Next.js](https://docs.sentry.io/platforms/javascript/guides/nextjs/)
-
+| File | Action |
+|------|--------|
+| `lib/chat/simpleChat.ts` | Create - Chat client |
+| `app/api/simple-chat/route.ts` | Create - API route |
+| `app/page.tsx` | Modify - Update endpoint or add mode toggle |
+| `.env.local` | Modify - Add HUGGINGFACE_API_URL |

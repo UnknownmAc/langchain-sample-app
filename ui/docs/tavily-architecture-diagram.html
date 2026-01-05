@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research Agent Architecture: Tavily vs Your Code</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      padding: 40px;
+      color: #e8e8e8;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 20px;
+      padding: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .workflow {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    
+    .your-code-section {
+      background: rgba(59, 130, 246, 0.1);
+      border: 2px solid rgba(59, 130, 246, 0.3);
+      border-radius: 16px;
+      padding: 25px;
+    }
+    
+    .node {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 10px 0;
+      border-left: 4px solid #3b82f6;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .node:hover {
+      transform: translateX(5px);
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+    }
+    
+    .node-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .node-number {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+    
+    .node-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #fff;
+    }
+    
+    .node-desc {
+      color: #a0a0a0;
+      font-size: 0.85rem;
+      margin-left: 40px;
+    }
+    
+    .arrow {
+      text-align: center;
+      color: #3b82f6;
+      font-size: 1.5rem;
+      margin: 5px 0;
+    }
+    
+    .tavily-section {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.1));
+      border: 2px solid rgba(251, 191, 36, 0.4);
+      border-radius: 16px;
+      padding: 25px;
+      margin: 15px 0;
+      position: relative;
+    }
+    
+    .tavily-section::before {
+      content: "EXTERNAL API";
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: #1a1a2e;
+      padding: 0 10px;
+      font-size: 0.7rem;
+      color: #fbbf24;
+      letter-spacing: 1px;
+    }
+    
+    .tavily-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    
+    .tavily-logo {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #1a1a2e;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    
+    .tavily-tasks {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    
+    .tavily-task {
+      background: rgba(251, 191, 36, 0.1);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #fcd34d;
+    }
+    
+    .tavily-task::before {
+      content: "→ ";
+      color: #fbbf24;
+    }
+    
+    .decision-box {
+      background: rgba(139, 92, 246, 0.15);
+      border: 2px dashed rgba(139, 92, 246, 0.5);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin: 15px 0;
+    }
+    
+    .decision-label {
+      color: #a78bfa;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    
+    .decision-paths {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+    }
+    
+    .path {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .path-label {
+      font-size: 0.8rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    
+    .path-yes {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+    
+    .path-no {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+    }
+    
+    .path-arrow {
+      font-size: 1.2rem;
+    }
+    
+    .path-dest {
+      font-size: 0.75rem;
+      color: #888;
+    }
+    
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #888;
+    }
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+    
+    .legend-blue {
+      background: #3b82f6;
+    }
+    
+    .legend-yellow {
+      background: #fbbf24;
+    }
+    
+    .code-location {
+      font-size: 0.7rem;
+      color: #666;
+      font-family: monospace;
+      margin-left: 40px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔬 Research Agent Architecture: Tavily vs Your Code</h1>
+    
+    <div class="workflow">
+      <div class="your-code-section">
+        <div class="section-label">Your Code (LangGraph Orchestration)</div>
+        
+        <div class="node">
+          <div class="node-header">
+            <span class="node-number">1</span>
+            <span class="node-title">GENERATE QUERIES</span>
+          </div>
+          <div class="node-desc">LLM (Groq/Llama) generates search queries from topic</div>
+          <div class="code-location">📁 nodes.ts:31-84</div>
+        </div>
+        
+        <div class="arrow">▼</div>
+        
+        <div class="node">
+          <div class="node-header">
+            <span class="node-number">2</span>
+            <span class="node-title">SEARCH DOCUMENTS</span>
+          </div>
+          <div class="node-desc">Execute web search for each query</div>
+          <div class="code-location">📁 searchTool.ts</div>
+        </div>
+      </div>
+      
+      <div class="arrow" style="font-size: 2rem;">⬇️</div>
+      
+      <div class="tavily-section">
+        <div class="tavily-header">
+          <span class="tavily-logo">TAVILY API</span>
+          <span style="color: #fcd34d; font-size: 0.9rem;">Search-as-a-Service</span>
+        </div>
+        <div class="tavily-tasks">
+          <div class="tavily-task">Query web search engines</div>
+          <div class="tavily-task">Fetch page content</div>
+          <div class="tavily-task">Extract & clean text</div>
+          <div class="tavily-task">Return structured data</div>
+        </div>
+      </div>
+      
+      <div class="arrow" style="font-size: 2rem;">⬆️</div>
+      
+      <div class="your-code-section">
+        <div class="node">
+          <div class="node-header">
+            <span class="node-number">3</span>
+            <span class="node-title">GRADE DOCUMENTS</span>
+          </div>
+          <div class="node-desc">LLM scores each document for relevance (0-1)</div>
+          <div class="code-location">📁 nodes.ts:128-203</div>
+        </div>
+        
+        <div class="arrow">▼</div>
+        
+        <div class="node">
+          <div class="node-header">
+            <span class="node-number">4</span>
+            <span class="node-title">DECIDE NEXT</span>
+          </div>
+          <div class="node-desc">Enough docs? Max iterations reached?</div>
+          <div class="code-location">📁 nodes.ts:214-240</div>
+        </div>
+        
+        <div class="decision-box">
+          <div class="decision-label">needsMoreResearch?</div>
+          <div class="decision-paths">
+            <div class="path">
+              <span class="path-label path-yes">YES</span>
+              <span class="path-arrow">↩️</span>
+              <span class="path-dest">Loop to Step 1</span>
+            </div>
+            <div class="path">
+              <span class="path-label path-no">NO</span>
+              <span class="path-arrow">⬇️</span>
+              <span class="path-dest">Continue</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="node">
+          <div class="node-header">
+            <span class="node-number">5</span>
+            <span class="node-title">SYNTHESIZE RESEARCH</span>
+          </div>
+          <div class="node-desc">LLM combines findings into comprehensive report</div>
+          <div class="code-location">📁 nodes.ts:247-306</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color legend-blue"></div>
+        <span>Your Code (LangGraph + LLM)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color legend-yellow"></div>
+        <span>Tavily API (External Service)</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

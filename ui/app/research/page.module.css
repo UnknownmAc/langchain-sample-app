@@ -1,0 +1,430 @@
+/* Research Page Styles */
+
+.main {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 50%, #16213e 100%);
+  color: #e0e0e0;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.headerContent {
+  text-align: center;
+}
+
+.backLink {
+  display: inline-block;
+  color: #64b5f6;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: #90caf9;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(135deg, #64b5f6, #ce93d8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #9e9e9e;
+  font-size: 0.95rem;
+}
+
+/* Workflow Diagram */
+.workflowDiagram {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.workflowDiagram h3 {
+  font-size: 0.9rem;
+  color: #9e9e9e;
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.workflow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.step {
+  background: rgba(100, 181, 246, 0.15);
+  border: 1px solid rgba(100, 181, 246, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #64b5f6;
+  position: relative;
+}
+
+.cycle {
+  display: block;
+  font-size: 0.7rem;
+  color: #ce93d8;
+  margin-top: 2px;
+}
+
+.arrow {
+  color: #616161;
+  font-size: 1.2rem;
+}
+
+/* Input Section */
+.inputSection {
+  margin-bottom: 2rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.9rem;
+  color: #9e9e9e;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.inputWrapper {
+  display: flex;
+  gap: 1rem;
+}
+
+.input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #64b5f6;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+.input::placeholder {
+  color: #666;
+}
+
+.button {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #64b5f6, #42a5f5);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(100, 181, 246, 0.4);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #757575;
+  margin-top: 0.5rem;
+}
+
+/* Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Logs Section */
+.logsSection {
+  margin-bottom: 2rem;
+}
+
+.logsSection h3 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+  color: #bdbdbd;
+}
+
+.logs {
+  background: #0d0d14;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.85rem;
+}
+
+.logEntry {
+  padding: 0.25rem 0;
+  color: #9e9e9e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logEntry:last-child {
+  border-bottom: none;
+}
+
+/* Error */
+.error {
+  background: rgba(244, 67, 54, 0.15);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #ef9a9a;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+}
+
+/* Results */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stats {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.stats h3 {
+  font-size: 1rem;
+  margin: 0 0 1rem;
+  color: #bdbdbd;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat {
+  text-align: center;
+}
+
+.statValue {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #64b5f6;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Synthesis */
+.synthesis {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.synthesis h3 {
+  font-size: 1rem;
+  margin: 0 0 1rem;
+  color: #bdbdbd;
+}
+
+.synthesisContent {
+  line-height: 1.7;
+  color: #e0e0e0;
+}
+
+.synthesisContent p {
+  margin: 0 0 1rem;
+}
+
+.synthesisContent p:last-child {
+  margin-bottom: 0;
+}
+
+/* Sources */
+.sources {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.sources h3 {
+  font-size: 1rem;
+  margin: 0 0 1rem;
+  color: #bdbdbd;
+}
+
+.sourceList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.source {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.source:last-child {
+  border-bottom: none;
+}
+
+.sourceScore {
+  background: rgba(100, 181, 246, 0.2);
+  color: #64b5f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 45px;
+  text-align: center;
+}
+
+.sourceLink {
+  color: #90caf9;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.sourceLink:hover {
+  color: #bbdefb;
+  text-decoration: underline;
+}
+
+/* Examples */
+.examples {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.examples h3 {
+  font-size: 0.9rem;
+  color: #757575;
+  margin: 0 0 1rem;
+}
+
+.exampleButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.exampleButton {
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: #9e9e9e;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exampleButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
+  .inputWrapper {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .workflow {
+    gap: 0.3rem;
+  }
+
+  .step {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .arrow {
+    font-size: 1rem;
+  }
+}
+

@@ -102,6 +102,9 @@ export default function Home() {
               <h1>LangChain Agent</h1>
             </div>
             <div className={styles.headerButtons}>
+              <a href="/research" className={styles.researchLink}>
+                🔬 Research Agent
+              </a>
               <button 
                 onClick={() => setShowUploader(!showUploader)} 
                 className={`${styles.uploaderToggle} ${showUploader ? styles.active : ""}`}
@@ -116,7 +119,7 @@ export default function Home() {
             </div>
           </div>
           <p className={styles.subtitle}>
-            Weather • Math • Study Buddy (PDF-AI) • <span className={styles.memoryBadge}>🧠 Memory</span>
+            Weather • Math • Study Buddy (PDF-AI) • <a href="/research" className={styles.subtitleLink}>Research Agent</a> • <span className={styles.memoryBadge}>🧠 Memory</span>
           </p>
         </header>
 

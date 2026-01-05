@@ -72,6 +72,31 @@
   font-weight: 500;
 }
 
+.researchLink {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(206, 147, 216, 0.2), rgba(100, 181, 246, 0.2));
+  border: 1px solid rgba(206, 147, 216, 0.3);
+  border-radius: 8px;
+  color: #ce93d8;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.researchLink:hover {
+  background: linear-gradient(135deg, rgba(206, 147, 216, 0.3), rgba(100, 181, 246, 0.3));
+  transform: translateY(-1px);
+}
+
+.subtitleLink {
+  color: #ce93d8;
+  text-decoration: none;
+}
+
+.subtitleLink:hover {
+  text-decoration: underline;
+}
+
 .logoIcon {
   font-size: 2rem;
   filter: drop-shadow(0 0 10px var(--accent-glow));
